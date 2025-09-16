@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Marine Chapter Generator</title>
+    <style>
+        :root {
+            /* Light mode colors */
+            --bg-primary: #f2f2f7;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f2f2f7;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-tertiary: #8E8E93;
+            --border-color: #E5E5EA;
+            --border-secondary: #C7C7CC;
+            --shadow: rgba(0,0,0,0.1);
+            --overlay: rgba(0,0,0,0.3);
+        }
+
+        [data-theme="dark"] {
+            /* Dark mode colors */
+            --bg-primary: #000000;
+            --bg-secondary: #1c1c1e;
+            --bg-tertiary: #2c2c2e;
+            --text-primary: #ffffff;
+            --text-secondary: #ebebf5;
+            --text-tertiary: #8e8e93;
+            --border-color: #38383a;
+            --border-secondary: #48484a;
+            --shadow: rgba(0,0,0,0.3);
+            --overlay: rgba(0,0,0,0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.4;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-text h1 {
+            font-size: 34px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .header-text p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .hamburger-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+        }
+
+        .hamburger-btn:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .hamburger-icon {
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .header-spacer {
+            width: 40px;
+        }
+
+        /* Main Controls */
+        .main-controls {
+            margin-bottom: 32px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .control-btn.primary {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .control-btn.secondary {
+            background-color: #FF9500;
+            color: white;
+        }
+
+        .control-btn.tertiary {
+            background-color: #AF52DE;
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Category Cards */
+        .category-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .category-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 10px var(--shadow);
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease, background-color 0.3s ease;
+        }
+
+        .category-card.locked {
+            border-color: #FF3B30;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .category-icon {
+            width: 28px;
+            height: 28px;
+            margin-right: 12px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .category-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-btn, .dropdown-btn, .lock-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .edit-btn.editing {
+            background-color: #34C759;
+        }
+
+        .dropdown-btn {
+            background-color: #007AFF;
+            color: white;
+            transition: transform 0.2s ease;
+        }
+
+        .dropdown-btn.open {
+            transform: rotate(180deg);
+        }
+
+        .lock-btn {
+            background-color: #8E8E93;
+            color: white;
+        }
+
+        .lock-btn.locked {
+            background-color: #FF3B30;
+        }
+
+        /* Category Value */
+        .category-value {
+            margin-bottom: 8px;
+        }
+
+        .category-text {
+            font-size: 16px;
+            color: var(--text-primary);
+            min-height: 22px;
+        }
+
+        .category-text.empty {
+            color: var(--text-tertiary);
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 8px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .text-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .save-btn {
+            padding: 6px 12px;
+            background-color: #34C759;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Dropdown Options */
+        .dropdown-options {
+            background-color: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border-secondary);
+            overflow: hidden;
+            margin-top: 8px;
+            opacity: 0;
+            max-height: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-options.open {
+            opacity: 1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.15s ease;
+        }
+
+        .dropdown-option:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-option:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        .dropdown-option.selected {
+            background-color: rgba(0, 122, 255, 0.1);
+        }
+
+        .dropdown-option-text {
+            font-size: 16px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .checkmark {
+            color: #007AFF;
+            font-size: 16px;
+        }
+
+        /* History Section */
+        .history-section {
+            margin-top: 32px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .history-icon {
+            color: #AF52DE;
+            font-size: 22px;
+            margin-right: 12px;
+        }
+
+        .history-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #AF52DE;
+        }
+
+        .history-item {
+            padding: 12px;
+            background-color: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .history-details {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Icons */
+        .icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+        }
+
+        .icon-shield { color: #007AFF; }
+        .icon-dna { color: #FF3B30; }
+        .icon-globe { color: #34C759; }
+        .icon-bolt { color: #FF9500; }
+        .icon-shield-fill { color: #AF52DE; }
+        .icon-book { color: #8B4513; }
+        .icon-people { color: #20B2AA; }
+        .icon-star { color: #FFD700; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .control-row {
+                flex-direction: column;
+            }
+            
+            .header-text h1 {
+                font-size: 28px;
+            }
+            
+            .side-menu {
+                width: 100%;
+                left: -100%;
+            }
+            
+            .menu-content {
+                padding: 16px;
+            }
+            
+            .lore-modal {
+                width: 95%;
+                margin: 20px;
+            }
+            
+            .lore-modal-content {
+                padding: 16px;
+            }
+            
+            .lore-leadership-section,
+            .lore-captains-section {
+                padding: 16px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Side Menu */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--overlay);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            box-shadow: 2px 0 10px var(--shadow);
+            transition: left 0.3s ease;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .side-menu.active {
+            left: 0;
+        }
+
+        .menu-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-title-icon {
+            color: #007AFF;
+            font-size: 22px;
+        }
+
+        .menu-title-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .menu-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            color: var(--text-tertiary);
+            font-size: 18px;
+            transition: background-color 0.2s ease;
+        }
+
+        .menu-close-btn:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .menu-content {
+            padding: 20px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .menu-item:hover {
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .menu-item:active {
+            transform: translateY(0);
+        }
+
+        .menu-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 16px;
+        }
+
+        .menu-item-icon.save {
+            background-color: #34C759;
+        }
+
+        .menu-item-icon.export {
+            background-color: #007AFF;
+        }
+
+        .menu-item-icon.load {
+            background-color: #AF52DE;
+        }
+
+        .menu-item-icon.theme {
+            background-color: #FF9500;
+        }
+
+        .menu-item-content {
+            flex: 1;
+        }
+
+        .menu-item-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .menu-item-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .menu-item-chevron {
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        /* File Input */
+        .file-input {
+            display: none;
+        }
+
+        /* Chapter Lore Modal */
+        .lore-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--overlay);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lore-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lore-modal {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px var(--shadow);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .lore-modal-overlay.active .lore-modal {
+            transform: scale(1);
+        }
+
+        .lore-modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lore-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lore-modal-title-icon {
+            color: #FF9500;
+            font-size: 24px;
+        }
+
+        .lore-modal-title-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .lore-modal-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .lore-modal-close {
+            padding: 8px 16px;
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .lore-modal-content {
+            padding: 20px;
+        }
+
+        .lore-section {
+            margin-bottom: 32px;
+        }
+
+        .lore-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .lore-section-icon {
+            color: #FF9500;
+            font-size: 18px;
+        }
+
+        .lore-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .lore-input-field {
+            margin-bottom: 16px;
+        }
+
+        .lore-input-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .lore-input-icon {
+            color: #FF9500;
+            font-size: 14px;
+        }
+
+        .lore-input-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .lore-text-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+        }
+
+        .lore-text-input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .lore-text-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .lore-text-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid var(--border-secondary);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+        }
+
+        .lore-text-area:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .lore-text-area::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .lore-leadership-section {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .lore-captains-section {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <button class="hamburger-btn" onclick="toggleSideMenu()" id="hamburger-btn">
+                    <span class="hamburger-icon">☰</span>
+                </button>
+                <div class="header-text">
+                    <h1>Space Marine Chapter Generator</h1>
+                    <p>For the Emperor!</p>
+                </div>
+                <div class="header-spacer"></div>
+            </div>
+        </div>
+
+        <!-- Main Controls -->
+        <div class="main-controls">
+            <div class="control-row">
+                <button class="control-btn primary" onclick="generateRandomChapter()">
+                    <span class="icon">🔄</span>
+                    Generate Chapter
+                </button>
+                <button class="control-btn secondary" onclick="toggleChapterLore()">
+                    <span class="icon">📖</span>
+                    Chapter Lore
+                </button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn tertiary" onclick="toggleHistory()">
+                    <span class="icon">🕐</span>
+                    History
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Cards -->
+        <div class="category-cards">
+            <!-- Chapter Name -->
+            <div class="category-card" id="card-name">
+                <div class="category-header">
+                    <div class="category-icon icon-shield">🛡️</div>
+                    <div class="category-title">Chapter Name</div>
+                    <div class="category-controls">
+                        <button class="edit-btn" onclick="toggleEdit('name')" id="edit-name">
+                            <span class="icon">✏️</span>
+                        </button>
+                        <button class="dropdown-btn" onclick="toggleDropdown('name')" id="dropdown-name">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('name')" id="lock-name">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-name">Not set</div>
+                    <div class="hidden" id="edit-name-container">
+                        <input type="text" class="text-input" id="input-name" placeholder="Enter chapter name">
+                        <button class="save-btn" onclick="saveEdit('name')">Save</button>
+                    </div>
+                </div>
+                <div class="dropdown-options" id="options-name"></div>
+            </div>
+
+            <!-- Gene-Father -->
+            <div class="category-card" id="card-genefather">
+                <div class="category-header">
+                    <div class="category-icon icon-dna">🧬</div>
+                    <div class="category-title">Gene-Father</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('genefather')" id="dropdown-genefather">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('genefather')" id="lock-genefather">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-genefather">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-genefather"></div>
+            </div>
+
+            <!-- Homeworld -->
+            <div class="category-card" id="card-homeworld">
+                <div class="category-header">
+                    <div class="category-icon icon-globe">🌍</div>
+                    <div class="category-title">Homeworld</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('homeworld')" id="dropdown-homeworld">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('homeworld')" id="lock-homeworld">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-homeworld">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-homeworld"></div>
+            </div>
+
+            <!-- Primary Combat Doctrine -->
+            <div class="category-card" id="card-combatDoctrineA">
+                <div class="category-header">
+                    <div class="category-icon icon-bolt">⚡</div>
+                    <div class="category-title">Primary Combat Doctrine</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('combatDoctrineA')" id="dropdown-combatDoctrineA">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('combatDoctrineA')" id="lock-combatDoctrineA">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-combatDoctrineA">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-combatDoctrineA"></div>
+            </div>
+
+            <!-- Secondary Combat Doctrine -->
+            <div class="category-card" id="card-combatDoctrineB">
+                <div class="category-header">
+                    <div class="category-icon icon-shield-fill">🛡️</div>
+                    <div class="category-title">Secondary Combat Doctrine</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('combatDoctrineB')" id="dropdown-combatDoctrineB">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('combatDoctrineB')" id="lock-combatDoctrineB">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-combatDoctrineB">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-combatDoctrineB"></div>
+            </div>
+
+            <!-- Beliefs -->
+            <div class="category-card" id="card-beliefs">
+                <div class="category-header">
+                    <div class="category-icon icon-book">📚</div>
+                    <div class="category-title">Beliefs</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('beliefs')" id="dropdown-beliefs">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('beliefs')" id="lock-beliefs">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-beliefs">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-beliefs"></div>
+            </div>
+
+            <!-- Attitudes -->
+            <div class="category-card" id="card-attitudes">
+                <div class="category-header">
+                    <div class="category-icon icon-people">👥</div>
+                    <div class="category-title">Attitudes</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('attitudes')" id="dropdown-attitudes">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('attitudes')" id="lock-attitudes">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-attitudes">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-attitudes"></div>
+            </div>
+
+            <!-- Notable Quirk -->
+            <div class="category-card" id="card-quirk">
+                <div class="category-header">
+                    <div class="category-icon icon-star">⭐</div>
+                    <div class="category-title">Notable Quirk</div>
+                    <div class="category-controls">
+                        <button class="dropdown-btn" onclick="toggleDropdown('quirk')" id="dropdown-quirk">
+                            <span class="icon">⌄</span>
+                        </button>
+                        <button class="lock-btn" onclick="toggleLock('quirk')" id="lock-quirk">
+                            <span class="icon">🔒</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="category-value">
+                    <div class="category-text" id="text-quirk">Not set</div>
+                </div>
+                <div class="dropdown-options" id="options-quirk"></div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section hidden" id="history-section">
+            <div class="history-header">
+                <span class="history-icon">🕐</span>
+                <h2 class="history-title">Generation History</h2>
+            </div>
+            <div id="history-list">
+                <p style="color: #666; font-style: italic;">No previous generations yet</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Menu Overlay -->
+    <div class="menu-overlay" id="menu-overlay" onclick="closeSideMenu()"></div>
+    
+    <!-- Side Menu -->
+    <div class="side-menu" id="side-menu">
+        <div class="menu-header">
+            <div class="menu-title">
+                <span class="menu-title-icon">🛡️</span>
+                <span class="menu-title-text">Chapter Tools</span>
+            </div>
+            <button class="menu-close-btn" onclick="closeSideMenu()">
+                <span>✕</span>
+            </button>
+        </div>
+        
+        <div class="menu-content">
+            <div class="menu-item" onclick="saveChapterAsJSON()">
+                <div class="menu-item-icon save">💾</div>
+                <div class="menu-item-content">
+                    <div class="menu-item-title">Save Chapter</div>
+                    <div class="menu-item-subtitle">Save as JSON file</div>
+                </div>
+                <div class="menu-item-chevron">›</div>
+            </div>
+            
+            <div class="menu-item" onclick="saveChapterAsText()">
+                <div class="menu-item-icon export">📄</div>
+                <div class="menu-item-content">
+                    <div class="menu-item-title">Export Text</div>
+                    <div class="menu-item-subtitle">Create readable document</div>
+                </div>
+                <div class="menu-item-chevron">›</div>
+            </div>
+            
+            <div class="menu-item" onclick="loadChapterFromFile()">
+                <div class="menu-item-icon load">📂</div>
+                <div class="menu-item-content">
+                    <div class="menu-item-title">Load Chapter</div>
+                    <div class="menu-item-subtitle">Import saved chapter</div>
+                </div>
+                <div class="menu-item-chevron">›</div>
+            </div>
+            
+            <div class="menu-item" onclick="toggleDarkMode()">
+                <div class="menu-item-icon theme">🌙</div>
+                <div class="menu-item-content">
+                    <div class="menu-item-title" id="theme-toggle-title">Dark Mode</div>
+                    <div class="menu-item-subtitle" id="theme-toggle-subtitle">Switch to dark theme</div>
+                </div>
+                <div class="menu-item-chevron">›</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="file-input" class="file-input" accept=".json" onchange="handleFileSelection(event)">
+
+    <!-- Chapter Lore Modal -->
+    <div class="lore-modal-overlay" id="lore-modal-overlay" onclick="closeLoreModal(event)">
+        <div class="lore-modal" onclick="event.stopPropagation()">
+            <div class="lore-modal-header">
+                <div>
+                    <div class="lore-modal-title">
+                        <span class="lore-modal-title-icon">📜</span>
+                        <span class="lore-modal-title-text">Chapter Lore & Characters</span>
+                    </div>
+                    <div class="lore-modal-subtitle">Craft the rich history and notable figures of your Space Marine chapter</div>
+                </div>
+                <button class="lore-modal-close" onclick="saveLoreAndClose()">Done</button>
+            </div>
+            
+            <div class="lore-modal-content">
+                <!-- Chapter Lore -->
+                <div class="lore-section">
+                    <div class="lore-input-field">
+                        <div class="lore-input-label">
+                            <span class="lore-input-icon">📚</span>
+                            <span class="lore-input-title">Chapter History & Lore</span>
+                        </div>
+                        <textarea 
+                            class="lore-text-area" 
+                            id="lore-history" 
+                            placeholder="Write the rich history and traditions of your chapter... their founding, great victories, honored dead, sacred relics, and the legacy that defines them in the grim darkness of the 41st millennium."></textarea>
+                    </div>
+                </div>
+
+                <!-- Leadership Section -->
+                <div class="lore-leadership-section">
+                    <div class="lore-section-header">
+                        <span class="lore-section-icon">👑</span>
+                        <span class="lore-section-title">Chapter Leadership</span>
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <div class="lore-input-label">
+                            <span class="lore-input-icon">🛡️</span>
+                            <span class="lore-input-title">Chapter Master</span>
+                        </div>
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-chapter-master" 
+                            placeholder="Lord Commander of the Chapter">
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <div class="lore-input-label">
+                            <span class="lore-input-icon">🧠</span>
+                            <span class="lore-input-title">Chief Librarian</span>
+                        </div>
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-librarian" 
+                            placeholder="Master of Psykers & Keeper of Knowledge">
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <div class="lore-input-label">
+                            <span class="lore-input-icon">⭐</span>
+                            <span class="lore-input-title">Master of Sanctity (Chaplain)</span>
+                        </div>
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-chaplain" 
+                            placeholder="Guardian of Faith & Spiritual Leader">
+                    </div>
+                </div>
+
+                <!-- Company Captains Section -->
+                <div class="lore-captains-section">
+                    <div class="lore-section-header">
+                        <span class="lore-section-icon">👥</span>
+                        <span class="lore-section-title">Notable Company Captains</span>
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-captain-1" 
+                            placeholder="1st Company Captain">
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-captain-2" 
+                            placeholder="2nd Company Captain">
+                    </div>
+                    
+                    <div class="lore-input-field">
+                        <input 
+                            type="text" 
+                            class="lore-text-input" 
+                            id="lore-captain-3" 
+                            placeholder="3rd Company Captain">
+                    </div>
+                </div>
+
+                <!-- Notable Events -->
+                <div class="lore-section">
+                    <div class="lore-input-field">
+                        <div class="lore-input-label">
+                            <span class="lore-input-icon">⚔️</span>
+                            <span class="lore-input-title">Notable Battles & Events</span>
+                        </div>
+                        <textarea 
+                            class="lore-text-area" 
+                            id="lore-events" 
+                            placeholder="Record the great campaigns, heroic last stands, bitter defeats, and pivotal moments that have shaped your chapter's legend..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data tables
+        const generationTables = {
+            genefather: [
+                "Unknown or Redacted",
+                "Robute Guilliman", 
+                "Rogal Dorn",
+                "Ferrus Manus",
+                "Jaghatai Khan",
+                "Sanguinius",
+                "Lion El'Jonson",
+                "Corax",
+                "Vulkan"
+            ],
+            homeworld: [
+                "Feral World",
+                "Death World",
+                "Feudal World", 
+                "Fortress World",
+                "Hive World",
+                "Shrine World",
+                "Fleet-based Chapter",
+                "Fortified Asteroid",
+                "Star Fort",
+                "Multiple Worlds",
+                "Classified"
+            ],
+            combatDoctrineA: [
+                "Aggressive Tactics: Close-quarters firefights and assault specialists",
+                "Defensive Tactics: Heavy fighter power and armor",
+                "Hit and Run Tactics: Highly maneuverable with an emphasis on light vehicles",
+                "Armored Tactics: Battle tanks and other heavy infantry",
+                "Esoteric Tactics: Psyker warfare",
+                "Guerrilla Tactics: Infiltration, ambush, stealth, and assassination"
+            ],
+            combatDoctrineB: [
+                "Urban Warfare Specialists",
+                "Wilderness Warfare Specialists",
+                "Void War Specialists",
+                "Extreme Environment Specialists",
+                "Monster Hunters",
+                "Siege Specialists"
+            ],
+            beliefs: [
+                "Codex Compliant",
+                "Codex Divergent",
+                "Fanatical"
+            ],
+            attitudes: [
+                "Adapted recruitment world customs",
+                "Secretive",
+                "On crusade"
+            ],
+            quirk: [
+                "Dark Secret",
+                "Penitents",
+                "Quest for relics or knowledge",
+                "Vendetta",
+                "Challenging duty",
+                "Fighting extinction"
+            ]
+        };
+
+        const chapterNames = {
+            prefixes: ["Imperial", "Crimson", "Iron", "Blood", "Dark", "Storm", "Fire", "Thunder", "Star", "Shadow", "Golden", "Silver", "Azure", "Emerald", "Void", "Stellar", "Wrathful", "Vengeful", "Noble", "Sacred", "Eternal", "Ancient", "Righteous", "Divine", "Blazing", "Frost", "Night", "Dawn", "Phantom", "Raven"],
+            suffixes: ["Fists", "Angels", "Guards", "Wolves", "Hawks", "Eagles", "Lions", "Bears", "Serpents", "Dragons", "Hammers", "Blades", "Spears", "Shields", "Wardens", "Sentinels", "Hunters", "Reapers", "Crusaders", "Templars", "Paladins", "Vindicators", "Liberators", "Destroyers", "Stalkers", "Scorpions", "Phoenixes", "Titans", "Wraiths", "Spectres"],
+            suggested: ["Imperial Fists", "Blood Angels", "Dark Angels", "Iron Hands", "Crimson Fists", "Storm Eagles", "Shadow Wolves", "Fire Dragons", "Golden Lions", "Silver Hawks", "Void Hunters", "Star Templars", "Thunder Hammers", "Night Reapers", "Dawn Guards", "Ancient Wardens", "Sacred Blades", "Righteous Sentinels", "Divine Spears", "Noble Bears"]
+        };
+
+        // State
+        let currentChapter = {
+            name: "",
+            genefather: "",
+            homeworld: "",
+            combatDoctrineA: "",
+            combatDoctrineB: "",
+            beliefs: "",
+            attitudes: "",
+            quirk: ""
+        };
+
+        let lockedCategories = {
+            name: false,
+            genefather: false,
+            homeworld: false,
+            combatDoctrineA: false,
+            combatDoctrineB: false,
+            beliefs: false,
+            attitudes: false,
+            quirk: false
+        };
+
+        let generationHistory = [];
+        let editingStates = {};
+        let customData = {
+            lore: "",
+            chapterMaster: "",
+            librarian: "",
+            chaplain: "",
+            captains: ["", "", ""],
+            notableEvents: ""
+        };
+
+        // Initialize
+        function initialize() {
+            // Build dropdown options
+            buildDropdowns();
+            // Initialize dark mode
+            initializeDarkMode();
+            // Generate initial chapter
+            generateRandomChapter();
+        }
+
+        // Dark Mode Functions
+        function initializeDarkMode() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeToggleUI(true);
+            } else {
+                updateThemeToggleUI(false);
+            }
+        }
+
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            if (newTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeToggleUI(true);
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                updateThemeToggleUI(false);
+            }
+            
+            closeSideMenu();
+        }
+
+        function updateThemeToggleUI(isDark) {
+            const titleEl = document.getElementById('theme-toggle-title');
+            const subtitleEl = document.getElementById('theme-toggle-subtitle');
+            const iconEl = document.querySelector('.menu-item-icon.theme');
+            
+            if (isDark) {
+                titleEl.textContent = 'Light Mode';
+                subtitleEl.textContent = 'Switch to light theme';
+                iconEl.textContent = '☀️';
+            } else {
+                titleEl.textContent = 'Dark Mode';
+                subtitleEl.textContent = 'Switch to dark theme';
+                iconEl.textContent = '🌙';
+            }
+        }
+
+        function buildDropdowns() {
+            // Chapter names dropdown
+            buildDropdown('name', chapterNames.suggested);
+            
+            // Other categories
+            Object.keys(generationTables).forEach(category => {
+                buildDropdown(category, generationTables[category]);
+            });
+        }
+
+        function buildDropdown(category, options) {
+            const container = document.getElementById(`options-${category}`);
+            container.innerHTML = options.map(option => 
+                `<div class="dropdown-option" onclick="selectOption('${category}', '${option.replace(/'/g, "\\'")}')">
+                    <div class="dropdown-option-text">${option}</div>
+                    <div class="checkmark hidden">✓</div>
+                </div>`
+            ).join('');
+        }
+
+        function generateRandomChapter() {
+            // Save current to history
+            if (currentChapter.name) {
+                generationHistory.unshift({...currentChapter});
+                if (generationHistory.length > 10) {
+                    generationHistory.pop();
+                }
+                updateHistory();
+            }
+
+            // Generate new chapter
+            if (!lockedCategories.name) {
+                currentChapter.name = generateChapterName();
+            }
+            
+            Object.keys(generationTables).forEach(category => {
+                if (!lockedCategories[category]) {
+                    const options = generationTables[category];
+                    currentChapter[category] = options[Math.floor(Math.random() * options.length)];
+                }
+            });
+
+            updateDisplay();
+        }
+
+        function generateChapterName() {
+            const prefix = chapterNames.prefixes[Math.floor(Math.random() * chapterNames.prefixes.length)];
+            const suffix = chapterNames.suffixes[Math.floor(Math.random() * chapterNames.suffixes.length)];
+            return `${prefix} ${suffix}`;
+        }
+
+        function updateDisplay() {
+            Object.keys(currentChapter).forEach(category => {
+                const textEl = document.getElementById(`text-${category}`);
+                const value = currentChapter[category];
+                
+                if (value) {
+                    textEl.textContent = value;
+                    textEl.classList.remove('empty');
+                } else {
+                    textEl.textContent = 'Not set';
+                    textEl.classList.add('empty');
+                }
+                
+                // Update dropdown selection
+                updateDropdownSelection(category, value);
+            });
+        }
+
+        function updateDropdownSelection(category, selectedValue) {
+            const options = document.querySelectorAll(`#options-${category} .dropdown-option`);
+            options.forEach(option => {
+                const text = option.querySelector('.dropdown-option-text').textContent;
+                const checkmark = option.querySelector('.checkmark');
+                
+                if (text === selectedValue) {
+                    option.classList.add('selected');
+                    checkmark.classList.remove('hidden');
+                } else {
+                    option.classList.remove('selected');
+                    checkmark.classList.add('hidden');
+                }
+            });
+        }
+
+        function toggleLock(category) {
+            lockedCategories[category] = !lockedCategories[category];
+            const lockBtn = document.getElementById(`lock-${category}`);
+            const card = document.getElementById(`card-${category}`);
+            
+            if (lockedCategories[category]) {
+                lockBtn.classList.add('locked');
+                lockBtn.innerHTML = '<span class="icon">🔒</span>';
+                card.classList.add('locked');
+            } else {
+                lockBtn.classList.remove('locked');
+                lockBtn.innerHTML = '<span class="icon">🔓</span>';
+                card.classList.remove('locked');
+            }
+        }
+
+        function toggleDropdown(category) {
+            const dropdown = document.getElementById(`options-${category}`);
+            const btn = document.getElementById(`dropdown-${category}`);
+            
+            // Close other dropdowns
+            document.querySelectorAll('.dropdown-options.open').forEach(el => {
+                if (el !== dropdown) {
+                    el.classList.remove('open');
+                }
+            });
+            document.querySelectorAll('.dropdown-btn.open').forEach(el => {
+                if (el !== btn) {
+                    el.classList.remove('open');
+                }
+            });
+            
+            dropdown.classList.toggle('open');
+            btn.classList.toggle('open');
+        }
+
+        function selectOption(category, option) {
+            currentChapter[category] = option;
+            updateDisplay();
+            
+            // Close dropdown
+            const dropdown = document.getElementById(`options-${category}`);
+            const btn = document.getElementById(`dropdown-${category}`);
+            dropdown.classList.remove('open');
+            btn.classList.remove('open');
+        }
+
+        function toggleEdit(category) {
+            const isEditing = editingStates[category];
+            
+            if (isEditing) {
+                // Save and exit edit mode
+                saveEdit(category);
+            } else {
+                // Enter edit mode
+                editingStates[category] = true;
+                const textEl = document.getElementById(`text-${category}`);
+                const editContainer = document.getElementById(`edit-${category}-container`);
+                const input = document.getElementById(`input-${category}`);
+                const editBtn = document.getElementById(`edit-${category}`);
+                
+                textEl.classList.add('hidden');
+                editContainer.classList.remove('hidden');
+                input.value = currentChapter[category];
+                input.focus();
+                
+                editBtn.classList.add('editing');
+                editBtn.innerHTML = '<span class="icon">✅</span>';
+            }
+        }
+
+        function saveEdit(category) {
+            editingStates[category] = false;
+            const textEl = document.getElementById(`text-${category}`);
+            const editContainer = document.getElementById(`edit-${category}-container`);
+            const input = document.getElementById(`input-${category}`);
+            const editBtn = document.getElementById(`edit-${category}`);
+            
+            const newValue = input.value.trim();
+            if (newValue) {
+                currentChapter[category] = newValue;
+            }
+            
+            textEl.classList.remove('hidden');
+            editContainer.classList.add('hidden');
+            
+            editBtn.classList.remove('editing');
+            editBtn.innerHTML = '<span class="icon">✏️</span>';
+            
+            updateDisplay();
+        }
+
+        function toggleHistory() {
+            const historySection = document.getElementById('history-section');
+            historySection.classList.toggle('hidden');
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('history-list');
+            
+            if (generationHistory.length === 0) {
+                historyList.innerHTML = '<p style="color: #666; font-style: italic;">No previous generations yet</p>';
+                return;
+            }
+            
+            historyList.innerHTML = generationHistory.map((chapter, index) => 
+                `<div class="history-item">
+                    <div class="history-name">${chapter.name}</div>
+                    <div class="history-details">
+                        Gene-Father: ${chapter.genefather}<br>
+                        Homeworld: ${chapter.homeworld}
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        function toggleChapterLore() {
+            // Load current data into modal
+            document.getElementById('lore-history').value = customData.lore;
+            document.getElementById('lore-chapter-master').value = customData.chapterMaster;
+            document.getElementById('lore-librarian').value = customData.librarian;
+            document.getElementById('lore-chaplain').value = customData.chaplain;
+            document.getElementById('lore-captain-1').value = customData.captains[0];
+            document.getElementById('lore-captain-2').value = customData.captains[1];
+            document.getElementById('lore-captain-3').value = customData.captains[2];
+            document.getElementById('lore-events').value = customData.notableEvents;
+            
+            // Show modal
+            document.getElementById('lore-modal-overlay').classList.add('active');
+        }
+
+        function closeLoreModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('lore-modal-overlay').classList.remove('active');
+        }
+
+        function saveLoreAndClose() {
+            // Save data from modal
+            customData.lore = document.getElementById('lore-history').value;
+            customData.chapterMaster = document.getElementById('lore-chapter-master').value;
+            customData.librarian = document.getElementById('lore-librarian').value;
+            customData.chaplain = document.getElementById('lore-chaplain').value;
+            customData.captains[0] = document.getElementById('lore-captain-1').value;
+            customData.captains[1] = document.getElementById('lore-captain-2').value;
+            customData.captains[2] = document.getElementById('lore-captain-3').value;
+            customData.notableEvents = document.getElementById('lore-events').value;
+            
+            // Close modal
+            closeLoreModal();
+        }
+
+        // Side Menu Functions
+        function toggleSideMenu() {
+            const overlay = document.getElementById('menu-overlay');
+            const menu = document.getElementById('side-menu');
+            
+            overlay.classList.add('active');
+            menu.classList.add('active');
+        }
+
+        function closeSideMenu() {
+            const overlay = document.getElementById('menu-overlay');
+            const menu = document.getElementById('side-menu');
+            
+            overlay.classList.remove('active');
+            menu.classList.remove('active');
+        }
+
+        // Save/Load Functions
+        function saveChapterAsJSON() {
+            const exportData = {
+                chapter: currentChapter,
+                customData: customData,
+                lockedCategories: {
+                    name: lockedCategories.name,
+                    genefather: lockedCategories.genefather,
+                    homeworld: lockedCategories.homeworld,
+                    combatDoctrineA: lockedCategories.combatDoctrineA,
+                    combatDoctrineB: lockedCategories.combatDoctrineB,
+                    beliefs: lockedCategories.beliefs,
+                    attitudes: lockedCategories.attitudes,
+                    quirk: lockedCategories.quirk
+                },
+                exportDate: new Date().toISOString(),
+                appVersion: "1.0 HTML5"
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const safeName = (currentChapter.name || "Chapter")
+                .replace(/[^a-zA-Z0-9]/g, "_");
+            const fileName = `${safeName}_${new Date().toISOString().split('T')[0]}.json`;
+
+            downloadFile(jsonString, fileName, 'application/json');
+            closeSideMenu();
+        }
+
+        function saveChapterAsText() {
+            let textContent = "SPACE MARINE CHAPTER RECORD\n";
+            textContent += "=".repeat(50) + "\n\n";
+            textContent += `Chapter Name: ${currentChapter.name || "Unnamed Chapter"}\n`;
+            textContent += `Gene-Father: ${currentChapter.genefather}\n`;
+            textContent += `Homeworld: ${currentChapter.homeworld}\n`;
+            textContent += `Primary Combat Doctrine: ${currentChapter.combatDoctrineA}\n`;
+            textContent += `Secondary Combat Doctrine: ${currentChapter.combatDoctrineB}\n`;
+            textContent += `Beliefs: ${currentChapter.beliefs}\n`;
+            textContent += `Attitudes: ${currentChapter.attitudes}\n`;
+            textContent += `Notable Quirk: ${currentChapter.quirk}\n\n`;
+
+            // Add lore data if present
+            if (customData.lore.trim()) {
+                textContent += "CHAPTER LORE\n";
+                textContent += "-".repeat(20) + "\n";
+                textContent += `${customData.lore}\n\n`;
+            }
+
+            // Add personnel if present
+            if (customData.chapterMaster.trim() || customData.librarian.trim() || customData.chaplain.trim() || customData.captains.some(c => c.trim())) {
+                textContent += "NOTABLE PERSONNEL\n";
+                textContent += "-".repeat(20) + "\n";
+                
+                if (customData.chapterMaster.trim()) {
+                    textContent += `Chapter Master: ${customData.chapterMaster}\n`;
+                }
+                if (customData.librarian.trim()) {
+                    textContent += `Chief Librarian: ${customData.librarian}\n`;
+                }
+                if (customData.chaplain.trim()) {
+                    textContent += `Master of Sanctity: ${customData.chaplain}\n`;
+                }
+                
+                const activeCaptains = customData.captains.filter(c => c.trim());
+                if (activeCaptains.length > 0) {
+                    textContent += `Company Captains: ${activeCaptains.join(", ")}\n`;
+                }
+                textContent += "\n";
+            }
+
+            // Add notable events if present
+            if (customData.notableEvents.trim()) {
+                textContent += "NOTABLE EVENTS\n";
+                textContent += "-".repeat(20) + "\n";
+                textContent += `${customData.notableEvents}\n\n`;
+            }
+
+            textContent += `Exported: ${new Date().toLocaleDateString()}\n`;
+
+            const safeName = (currentChapter.name || "Chapter")
+                .replace(/[^a-zA-Z0-9]/g, "_");
+            const fileName = `${safeName}_Record.txt`;
+
+            downloadFile(textContent, fileName, 'text/plain');
+            closeSideMenu();
+        }
+
+        function loadChapterFromFile() {
+            const fileInput = document.getElementById('file-input');
+            fileInput.click();
+            closeSideMenu();
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.json')) {
+                alert('Please select a JSON file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    // Validate the structure
+                    if (!importData.chapter) {
+                        throw new Error('Invalid chapter file format');
+                    }
+
+                    // Load chapter data
+                    currentChapter = { ...importData.chapter };
+                    
+                    // Load custom data if present
+                    if (importData.customData) {
+                        customData = {
+                            lore: importData.customData.lore || "",
+                            chapterMaster: importData.customData.chapterMaster || "",
+                            librarian: importData.customData.librarian || "",
+                            chaplain: importData.customData.chaplain || "",
+                            captains: importData.customData.captains || ["", "", ""],
+                            notableEvents: importData.customData.notableEvents || ""
+                        };
+                    }
+                    
+                    // Load locked categories if present
+                    if (importData.lockedCategories) {
+                        Object.keys(lockedCategories).forEach(key => {
+                            if (importData.lockedCategories.hasOwnProperty(key)) {
+                                lockedCategories[key] = importData.lockedCategories[key];
+                                updateLockDisplay(key);
+                            }
+                        });
+                    }
+
+                    // Update display
+                    updateDisplay();
+                    
+                    alert(`Successfully loaded chapter: ${currentChapter.name}`);
+                    
+                } catch (error) {
+                    console.error('Error loading file:', error);
+                    alert('Error loading file. Please ensure it\'s a valid chapter export.');
+                }
+            };
+            
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function updateLockDisplay(category) {
+            const lockBtn = document.getElementById(`lock-${category}`);
+            const card = document.getElementById(`card-${category}`);
+            
+            if (lockedCategories[category]) {
+                lockBtn.classList.add('locked');
+                lockBtn.innerHTML = '<span class="icon">🔒</span>';
+                card.classList.add('locked');
+            } else {
+                lockBtn.classList.remove('locked');
+                lockBtn.innerHTML = '<span class="icon">🔓</span>';
+                card.classList.remove('locked');
+            }
+        }
+
+        // Click outside to close dropdowns
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.category-controls') && !e.target.closest('.dropdown-options')) {
+                document.querySelectorAll('.dropdown-options.open').forEach(el => {
+                    el.classList.remove('open');
+                });
+                document.querySelectorAll('.dropdown-btn.open').forEach(el => {
+                    el.classList.remove('open');
+                });
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // Close lore modal
+                closeLoreModal();
+                
+                // Close side menu
+                closeSideMenu();
+                
+                // Close dropdowns
+                document.querySelectorAll('.dropdown-options.open').forEach(el => {
+                    el.classList.remove('open');
+                });
+                document.querySelectorAll('.dropdown-btn.open').forEach(el => {
+                    el.classList.remove('open');
+                });
+            }
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', initialize);
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addListener((e) => {
+            if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    updateThemeToggleUI(true);
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    updateThemeToggleUI(false);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
